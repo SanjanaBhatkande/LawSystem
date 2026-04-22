@@ -12,7 +12,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 $host   = '127.0.0.1';
-$dbname = 'SmartCaseSystem';
+$dbname = 'LawSystem';
 $user   = 'root';
 $pass   = 'Hinata@07';          // ← change if your MySQL has a password
 

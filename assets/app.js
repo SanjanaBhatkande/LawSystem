@@ -224,23 +224,26 @@ async function loadCases() {
 }
 
 async function addCase() {
-  const caseref  = document.getElementById('case-ref').value.trim();
   const title    = document.getElementById('case-title').value.trim();
   const type     = document.getElementById('case-type').value;
   const priority = document.getElementById('case-priority').value;
   const clientid = document.getElementById('case-client').value;
-  if (!caseref || !title) { toast('Case Ref and Title are required', 'error'); return; }
+
+  if (!title) {
+    toast('Title is required', 'error');
+    return;
+  }
 
   const res = await api(`${API}/cases.php?action=add`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ caseref, title, type, priority, clientid })
+    body: JSON.stringify({ title, type, priority, clientid })
   });
 
   if (res.success) {
-    toast('Case added successfully ✓');
+    toast('Case added ✓ Ref: ' + res.caseref);
     closeModal('modal-add-case');
-    clearForm(['case-ref','case-title']);
+    clearForm(['case-title']);
     loadCases();
   } else {
     toast(res.error || 'Failed to add case', 'error');
@@ -293,31 +296,33 @@ async function populateJudges() {
 }
 
 async function addHearing() {
-  const ref    = document.getElementById('h-ref').value.trim();
-  const caseid = document.getElementById('h-case').value;
+  const caseid  = document.getElementById('h-case').value;
   const judgeid = document.getElementById('h-judge').value;
-  const date   = document.getElementById('h-date').value;
-  const mode   = document.getElementById('h-mode').value;
-  const room   = document.getElementById('h-room').value.trim();
-  const status = document.getElementById('h-status').value;
-  if (!ref || !date || !room) { toast('Ref, Date and Room are required', 'error'); return; }
+  const date    = document.getElementById('h-date').value;
+  const mode    = document.getElementById('h-mode').value;
+  const room    = document.getElementById('h-room').value.trim();
+  const status  = document.getElementById('h-status').value;
+
+  if (!date || !room) {
+    toast('Date and Room are required', 'error');
+    return;
+  }
 
   const res = await api(`${API}/hearings.php?action=add`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ref, caseid, judgeid, date, mode, room, status })
+    body: JSON.stringify({ caseid, judgeid, date, mode, room, status })
   });
 
   if (res.success) {
-    toast('Hearing scheduled successfully ✓');
+    toast('Hearing scheduled ✓ Ref: ' + res.ref);
     closeModal('modal-add-hearing');
-    clearForm(['h-ref','h-date','h-room']);
+    clearForm(['h-date','h-room']);
     loadHearings();
   } else {
     toast(res.error || 'Failed to schedule hearing', 'error');
   }
 }
-
 async function deleteHearing(id) {
   if (!confirm('Delete this hearing?')) return;
   const res = await api(`${API}/hearings.php?id=${id}`, { method: 'DELETE' });

@@ -16,29 +16,44 @@ try {
     } elseif ($method === 'POST' && $action === 'add') {
         $data = json_decode(file_get_contents('php://input'), true);
         if (!$data) { echo json_encode(['error' => 'Invalid JSON']); exit; }
-        // Direct INSERT (mirrors Add_Client procedure) — avoids multi-result-set issues
+
         $stmt = $pdo->prepare(
-            "INSERT INTO Clients (Name, Email, Phone, DocID) VALUES (:name, :email, :phone, :doc)"
+            "INSERT INTO Clients (Name, Email, Phone, DocID)
+             VALUES (:name, :email, :phone, :doc)"
         );
+
         $stmt->execute([
             ':name'  => $data['name']  ?? '',
             ':email' => $data['email'] ?? '',
             ':phone' => $data['phone'] ?? '',
             ':doc'   => $data['docid'] ?? '',
         ]);
-        echo json_encode(['success' => true, 'id' => $pdo->lastInsertId()]);
+
+        echo json_encode([
+            'success' => true,
+            'id' => $pdo->lastInsertId()
+        ]);
 
     } elseif ($method === 'DELETE') {
         $id = intval($_GET['id'] ?? 0);
         if (!$id) { echo json_encode(['error' => 'Missing id']); exit; }
-        $pdo->prepare("DELETE FROM Clients WHERE ClientID = ?")->execute([$id]);
+
+        $pdo->prepare("DELETE FROM Clients WHERE ClientID = ?")
+            ->execute([$id]);
+
         echo json_encode(['success' => true]);
 
     } else {
         http_response_code(400);
         echo json_encode(['error' => 'Invalid action: ' . $action]);
     }
+
 } catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+
+    if ($e->getCode() == 23000) {
+        echo json_encode(['error' => 'Duplicate DocID']);
+    } else {
+        http_response_code(500);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
 }

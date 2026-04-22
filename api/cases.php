@@ -4,13 +4,11 @@ require_once __DIR__ . '/db.php';
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 
-// Helper: fetch first result set from a stored procedure and close cursor
 function callProc($pdo, $sql, $params = []) {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $rows = $stmt->fetchAll();
-    // Flush any extra result sets MySQL sends back
-    while ($stmt->nextRowset()) { /* drain */ }
+    while ($stmt->nextRowset()) {}
     return $rows;
 }
 
@@ -49,19 +47,31 @@ try {
     } elseif ($method === 'POST' && $action === 'add') {
         $data = json_decode(file_get_contents('php://input'), true);
         if (!$data) { echo json_encode(['error' => 'Invalid JSON']); exit; }
-        // Direct INSERT mirrors Add_Case procedure
+
         $stmt = $pdo->prepare(
             "INSERT INTO Cases (CaseRef, Title, Type, Priority, ClientID, FilingDate, Status)
-             VALUES (:ref, :title, :type, :priority, :client, CURDATE(), 'Active')"
+             VALUES ('', :title, :type, :priority, :client, CURDATE(), 'Active')"
         );
+
         $stmt->execute([
-            ':ref'      => $data['caseref']  ?? '',
             ':title'    => $data['title']    ?? '',
             ':type'     => $data['type']     ?? 'Civil',
             ':priority' => $data['priority'] ?? 'Medium',
             ':client'   => intval($data['clientid'] ?? 0),
         ]);
-        echo json_encode(['success' => true, 'id' => $pdo->lastInsertId()]);
+
+        $lastId = $pdo->lastInsertId();
+
+        $caseRef = "CASE-" . date("Y") . "-" . str_pad($lastId, 5, "0", STR_PAD_LEFT);
+
+        $pdo->prepare("UPDATE Cases SET CaseRef=? WHERE CaseID=?")
+            ->execute([$caseRef, $lastId]);
+
+        echo json_encode([
+            'success' => true,
+            'id' => $lastId,
+            'caseref' => $caseRef
+        ]);
 
     } elseif ($method === 'DELETE') {
         $id = intval($_GET['id'] ?? 0);
