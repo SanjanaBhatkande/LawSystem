@@ -17,7 +17,7 @@ try {
         $stmt = $pdo->query(
             "SELECT c.*, cl.Name AS ClientName
              FROM Cases c
-             JOIN Clients cl ON c.ClientID = cl.ClientID
+             LEFT JOIN Clients cl ON c.ClientID = cl.ClientID
              ORDER BY c.CaseID DESC"
         );
         echo json_encode($stmt->fetchAll());

@@ -18,7 +18,7 @@ try {
             "SELECT h.*, c.Title AS CaseTitle, c.CaseRef, j.Name AS JudgeName
              FROM Hearings h
              JOIN Cases c ON h.CaseID = c.CaseID
-             JOIN Judges j ON h.JudgeID = j.JudgeID
+             LEFT JOIN Judges j ON h.JudgeID = j.JudgeID
              ORDER BY h.HearingDate DESC"
         );
         echo json_encode($stmt->fetchAll());
