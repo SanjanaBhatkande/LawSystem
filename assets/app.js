@@ -22,6 +22,12 @@ document.querySelectorAll('.nav-item').forEach(btn => {
   });
 });
 
+// Mobile sidebar
+const hamburger = document.getElementById('hamburger');
+const sidebar = document.getElementById('sidebar');
+hamburger?.addEventListener('click', () => sidebar.classList.toggle('open'));
+function closeSidebar() { sidebar.classList.remove('open'); }
+
 // ─── API HELPERS ──────────────────────────────────────────────
 async function api(endpoint, options = {}) {
   try {
