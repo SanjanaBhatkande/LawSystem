@@ -50,9 +50,13 @@ try {
 
 } catch (PDOException $e) {
 
-    if ($e->getCode() == 23000) {
+    if ($method === 'POST' && $e->getCode() == 23000) {
         echo json_encode(['error' => 'Duplicate DocID']);
-    } else {
+    } 
+    elseif ($method === 'DELETE' && $e->getCode() == 23000) {
+        echo json_encode(['error' => 'Cannot delete client (linked to cases)']);
+    } 
+    else {
         http_response_code(500);
         echo json_encode(['error' => $e->getMessage()]);
     }
